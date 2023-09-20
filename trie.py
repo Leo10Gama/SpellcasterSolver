@@ -58,13 +58,22 @@ class Trie:
                 return False
         return node.is_word
     
+    def word_can_continue(self, word: str) -> bool:
+        """Given a prefix, check if the word can be continued."""
+        node = self.root
+        for character in word:
+            if character in node.children:
+                node = node.children[character]
+            else:
+                return False
+        return True if node.children else False
+    
     def populate_trie(self):
         """Populate the trie with words from the English dictionary."""
         trie = Trie()
         print(f"Populating trie...", end="", flush=True)
         with open("dictionary.txt", "r") as f:
             for line in f.readlines():
-                print(f"Reading {line.strip()}...")
                 trie.add_word(line.strip())
         print(f" Done.")
         self.root = trie.root

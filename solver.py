@@ -148,7 +148,7 @@ def find_words_at_tile(board, x, y, trie, dl, dw, tl, curr="", taken_coords=[]) 
         taken_coords.append((x, y))
         check_direction(x+1, y+1)
         taken_coords.pop()
-    
+
     # BASE CASE: return all the values we retrieved
     return points_to_words
 
@@ -166,7 +166,8 @@ def compute_points(word: str, coords: List[Tuple[int, int]], dl, dw, tl) -> int:
         if coord == dw:
             dw_multiplier = 2
         total_points += points
-    return total_points * dw_multiplier + 10 if len(word) >= 6 else 0
+    
+    return total_points * dw_multiplier + (10 if len(word) >= 6 else 0)
 
 
 def solver():
@@ -183,8 +184,26 @@ def solver():
         dw = (int(dw_in.split(",")[0]), int(dw_in.split(",")[1])) if dw_in else None
         tl_in = input("Enter triple-letter modifier position (in form 'x,y' from (0-4), nothing if no modifier): ")
         tl = (int(tl_in.split(",")[0]), int(tl_in.split(",")[1])) if tl_in else None
+        swaps = True if input("Would you like to use a swap? (y/N): ").lower() == "y" else False
+
+        print("Finding best words:\n[                         ]\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b", end="")
         words = find_words(board, trie, dl, dw, tl)
+        print("#########################] (Done)")
+        words_with_swaps = {}
+        if swaps:
+            print("Performing swaps:\n[                         ]\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b", end="")
+            for i, letter in enumerate(board):
+                for new_letter in "abcdefghijklmnopqrstuvwxyz":
+                    if new_letter == letter: continue
+                    new_board = board[:i] + new_letter + board[i+1:]
+                    new_words = find_words(new_board, trie, dl, dw, tl)
+                    for points, wordset in new_words.items():
+                        words_with_swaps.update({points: {f"({i%5}, {i//5})->{new_letter}": wordset}})
+                print("#", end="", flush=True)
+            print("] (Done)")
         print("Found all words!")
+
+        if swaps: print("=== WITHOUT SWAPPING ===")
         possible_points = []
         for points in words:
             possible_points.append(points)
@@ -194,8 +213,22 @@ def solver():
             points = possible_points[-1-i]
             print(f"For {points} points...")
             print(f"\t{' / '.join(words[points])}")
-        working = False if input("Continue? (y/n): ").upper() == "N" else True
+        if swaps:
+            print("=== WITH 1 SWAP ===")
+            possible_points = []
+            for points in words_with_swaps:
+                possible_points.append(points)
+            possible_points.sort()
+            top_results = 5  # give this many points results
+            for i in range(min(top_results, len(possible_points))):
+                points = possible_points[-1-i]
+                print(f"For {points} points...")
+                for swap in words_with_swaps[points]:
+                    print(f"\tSwap {swap}: {' / '.join(words_with_swaps[points][swap])}")
+        working = False if input("Continue? (Y/n): ").lower() == "n" else True
     print("Thanks for playing!")
+    # osnruymbiidxeugodnonaiuec
+    # ourfoujsdiamxaigkiaedlqia
 
 
 if __name__=='__main__':
